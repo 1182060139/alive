@@ -4,14 +4,22 @@ import android.graphics.*
 import kotlin.math.sqrt
 import kotlin.random.Random
 
+// 资源类型枚举
+enum class ResourceType {
+    TREE, ROCK, BERRY_BUSH
+}
+
+// 资源数据类
+data class Resource(val type: ResourceType, var x: Float, var y: Float, var quantity: Int = 1)
+
 class World {
     val resources = mutableListOf<Resource>()
-    
+
     fun generate(player: Player) {
         resources.clear()
         repeat(15) { addRandomResource() }
     }
-    
+
     private fun addRandomResource() {
         resources.add(
             Resource(
@@ -21,9 +29,9 @@ class World {
             )
         )
     }
-    
+
     fun update(view: GameSurfaceView) { }
-    
+
     fun collectNearest(player: Player, view: GameSurfaceView) {
         val near = resources.filter {
             val dx = player.x - it.x
@@ -53,7 +61,7 @@ class World {
             )
         }
     }
-    
+
     fun draw(canvas: Canvas, paint: Paint, view: GameSurfaceView) {
         for (res in resources) {
             val bmp = when (res.type) {
@@ -67,4 +75,4 @@ class World {
         }
         paint.setShadowLayer(0f, 0f, 0f, 0)
     }
-}
+}   
