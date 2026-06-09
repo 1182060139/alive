@@ -21,6 +21,9 @@ class Player {
     private var facingRight = true
     
     fun update(delta: Float, view: GameSurfaceView, touching: Boolean, touchX: Float, touchY: Float) {
+        // 防止屏幕尚未初始化导致的崩溃
+        if (view.screenW <= 0f || view.screenH <= 0f) return
+
         // 移动目标由触屏设定，不在虚拟摇杆区域就移动
         if (touching && !view.ui.isOverControl(touchX, touchY, view)) {
             targetX = touchX
@@ -45,7 +48,7 @@ class Player {
             walkAnimFrame = 0f // 待机
         }
         
-        // 边界
+        // 边界（确保屏幕有效后计算）
         x = x.coerceIn(20f, view.screenW - 20f)
         y = y.coerceIn(80f, view.screenH - 20f)
         
@@ -59,7 +62,6 @@ class Player {
     }
     
     fun draw(canvas: Canvas, paint: Paint) {
-        // 绘制人物：圆头、身体、四肢
         val headRadius = 12f
         val bodyLen = 16f
         val legLen = 14f
