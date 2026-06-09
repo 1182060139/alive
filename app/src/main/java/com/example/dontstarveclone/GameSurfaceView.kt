@@ -22,6 +22,12 @@ class GameSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     var screenH = 0f
     private var lastUpdateTime = System.currentTimeMillis()
     
+    // 图片资源
+    val playerBitmap: Bitmap
+    val treeBitmap: Bitmap
+    val rockBitmap: Bitmap
+    val berryBushBitmap: Bitmap
+    
     // 触摸状态
     private var touchX = 0f
     private var touchY = 0f
@@ -30,7 +36,26 @@ class GameSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
     init {
         holder.addCallback(this)
         isFocusable = true
+        
+        // 加载图片（如果文件缺失则用占位纯色块）
+        playerBitmap = loadBitmap(context, R.drawable.player, 128, 128, Color.rgb(255, 220, 180))
+        treeBitmap = loadBitmap(context, R.drawable.tree, 128, 128, Color.rgb(34, 139, 34))
+        rockBitmap = loadBitmap(context, R.drawable.rock, 64, 64, Color.GRAY)
+        berryBushBitmap = loadBitmap(context, R.drawable.berry_bush, 64, 64, Color.rgb(0, 100, 0))
+        
         world.generate(player)
+    }
+    
+    private fun loadBitmap(context: Context, resId: Int, w: Int, h: Int, fallbackColor: Int): Bitmap {
+        return try {
+            val raw = BitmapFactory.decodeResource(context.resources, resId)
+            Bitmap.createScaledBitmap(raw, w, h, true)
+        } catch (e: Exception) {
+            // 图片缺失时用纯色方块代替
+            val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            bmp.eraseColor(fallbackColor)
+            bmp
+        }
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {}
@@ -83,7 +108,7 @@ class GameSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         }
         
         world.draw(canvas, paint, this)
-        player.draw(canvas, paint)
+        player.draw(canvas, paint, playerBitmap)
         ui.draw(canvas, paint, this)
         
         holder.unlockCanvasAndPost(canvas)
@@ -94,9 +119,7 @@ class GameSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Ca
         touchX = event.x
         touchY = event.y
         
-        // 传递给UI优先处理按钮
         if (ui.onTouch(event, this)) return true
-        
         return true
     }
 }

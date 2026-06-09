@@ -1,25 +1,15 @@
 package com.example.dontstarveclone
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.*
 import kotlin.math.sqrt
 import kotlin.random.Random
-
-data class Resource(val type: ResourceType, var x: Float, var y: Float, var quantity: Int = 1)
-
-enum class ResourceType {
-    TREE, ROCK, BERRY_BUSH
-}
 
 class World {
     val resources = mutableListOf<Resource>()
     
     fun generate(player: Player) {
         resources.clear()
-        for (i in 1..15) {
-            addRandomResource()
-        }
+        repeat(15) { addRandomResource() }
     }
     
     private fun addRandomResource() {
@@ -32,25 +22,13 @@ class World {
         )
     }
     
-    fun update(view: GameSurfaceView) {
-        // 检测玩家周围采集
-        val player = view.player
-        val iter = resources.iterator()
-        while (iter.hasNext()) {
-            val res = iter.next()
-            val dx = player.x - res.x
-            val dy = player.y - res.y
-            if (sqrt(dx * dx + dy * dy) < 40f) {
-                // 自动采集？这里改为由按钮触发，所以只标记距离不做自动采集
-            }
-        }
-    }
+    fun update(view: GameSurfaceView) { }
     
     fun collectNearest(player: Player, view: GameSurfaceView) {
         val near = resources.filter {
             val dx = player.x - it.x
             val dy = player.y - it.y
-            sqrt(dx * dx + dy * dy) < 50f
+            sqrt(dx * dx + dy * dy) < 60f
         }.minByOrNull {
             val dx = player.x - it.x
             val dy = player.y - it.y
@@ -66,7 +44,6 @@ class World {
                 }
             }
             resources.remove(near)
-            // 重新生成一个资源保持世界丰富
             resources.add(
                 Resource(
                     type = ResourceType.entries.random(),
@@ -79,26 +56,15 @@ class World {
     
     fun draw(canvas: Canvas, paint: Paint, view: GameSurfaceView) {
         for (res in resources) {
-            paint.style = Paint.Style.FILL
-            when (res.type) {
-                ResourceType.TREE -> {
-                    paint.color = Color.rgb(139, 69, 19)
-                    canvas.drawRect(res.x - 4, res.y - 15, res.x + 4, res.y, paint)
-                    paint.color = Color.rgb(34, 139, 34)
-                    canvas.drawCircle(res.x, res.y - 20, 12f, paint)
-                }
-                ResourceType.ROCK -> {
-                    paint.color = Color.GRAY
-                    canvas.drawCircle(res.x, res.y, 10f, paint)
-                }
-                ResourceType.BERRY_BUSH -> {
-                    paint.color = Color.rgb(0, 100, 0)
-                    canvas.drawCircle(res.x, res.y, 8f, paint)
-                    paint.color = Color.RED
-                    canvas.drawCircle(res.x - 3, res.y - 8, 3f, paint)
-                    canvas.drawCircle(res.x + 3, res.y - 6, 3f, paint)
-                }
+            val bmp = when (res.type) {
+                ResourceType.TREE -> view.treeBitmap
+                ResourceType.ROCK -> view.rockBitmap
+                ResourceType.BERRY_BUSH -> view.berryBushBitmap
             }
+            // 绘制阴影
+            paint.setShadowLayer(10f, 4f, 4f, Color.argb(100, 0, 0, 0))
+            canvas.drawBitmap(bmp, res.x - bmp.width / 2f, res.y - bmp.height / 2f, paint)
         }
+        paint.setShadowLayer(0f, 0f, 0f, 0)
     }
 }
